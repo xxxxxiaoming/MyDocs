@@ -35,6 +35,11 @@
 2. 对收到的数据签名使用公钥进行解密，得到摘要B
 3. 判断A,B是否一样，一样说明信息没被篡改。
 
+
+![签名的生成](https://chuquan-public-r-001.oss-cn-shanghai.aliyuncs.com/sketch-images/signature-creation.png?x-oss-process=image/resize,w_800 "签名的生成")
+
+![签名的验证](https://chuquan-public-r-001.oss-cn-shanghai.aliyuncs.com/sketch-images/signature-validation.png?x-oss-process=image/resize,w_800 "签名的验证")
+
 #### 信息摘要
 
 以本文的主角iOS包体ipa为例，一个ipa包体的大小，小的有几十MB，大的动辄几GB，对这么大的数据量进行加密解密，耗时长，效率低。现代人都没什么耐心，有时候一个游戏首包资源太大都可能劝退一大群玩家。信息摘要解决的就是加密信息过大的问题，其是一段对未加密的信息内容进行哈希计算所得到的哈希值，具有以下几个特点：
@@ -57,7 +62,9 @@
 
 数字证书（Digital Certificate）是一种相当于现实世界中身份证的功能在数字领域中的实现。数字证书包含了个人或机构的身份信息及其公钥，因此也称为公钥证书。一份公钥证书图示如下：
 
+
 ![公钥证书](https://chuquan-public-r-001.oss-cn-shanghai.aliyuncs.com/sketch-images/certificate.png?x-oss-process=image/resize,w_800)
+
 
 接收方收到证书后，通过颁发该证书的CA公钥对证书进行签名验证，这里就有引出一个问题，怎么保证CA公钥的安全性呢？通常来说，包含CA公钥的证书由另一个更加权威的CA机构颁发，可以用颁发CA证书的CA机构的公钥进行验证，这里讲得有点绕，反正就是，证书验证证书。看到这里，你可能会问，这不是在套娃吗，没完没了的那种，验证一个证书需要另一个证书，验证另一个证书又要用另另一个证书。实际并不是这样，这个链条是有一个源头的，这个源头称为根证书，根证书就没有“验证根证书”这一说法了。根证书一般是随系统安装的，也就是根证书就在设备中，不需要通过网络传输，因此根证书一般都是可靠，安全的。比如，apple官网的support可以查到每一代iOS，iPadOS，macOS所安装的根证书（以及被apple拉黑的根证书机构，其中有一家中国机构，叫沃通，WoSign，这家机构跟360有些拉lam，笑死）。
 
