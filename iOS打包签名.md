@@ -90,6 +90,6 @@ iOS证书可以分为两类：
 
 ![正式包体的安装验证](https://chuquan-public-r-001.oss-cn-shanghai.aliyuncs.com/sketch-images/app-store-validation.png?x-oss-process=image/resize,w_800 "正式包体的安装验证")
 
-# 总结
+## 总结
 
 以上就是对iOS包体签名，验证的一个大致认识，其中的具体细节还有很多，但是目前没有精力继续了解以及实际操作，用这篇文章记录下一个大概的认知，之后在工作中听到一些跟包体相关的专业名词时，也不至于一脸懵逼。
