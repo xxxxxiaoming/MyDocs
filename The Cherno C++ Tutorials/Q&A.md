@@ -1,4 +1,6 @@
-# How The C++ Compiler Works
+# TheCherno C++ Lessons
+
+## How The C++ Compiler Works
 
 ### C++ Compiler's responsibility
 
@@ -159,3 +161,45 @@ Type "&variable" inside "Adress" -> Enter
 Now you should see the memory content of the variable "variable" below.
 
 ![viewing memory of variable](image.png)
+
+### Viewing Disassembly Code
+
+**<font color = "gold">Under debug, when your program runs into a breakpoint</font>**，you can check the assemably code by two ways.
+
+One way by right clicking the mouse and selecting the "Go to Disassembly" option of the menu.
+
+Another way is the shortcut-keys way. Press Ctrl+K, and then press G. Remeber releasing after pressing Ctrl+K.
+
+You can see the following window if there's no accidents.
+
+![disassembly](image-1.png)
+
+## Setup Your C++ Projects in Visual Studio 2022
+
+### Filters VS Folders
+
+There are filters in Visual Studio. Filters are something that Visual Studio helps you to classify your files. They are not existed in your disk.
+
+Folders are real folders that created actual folders in your disk.
+
+Your can treat filters as virtual folders.
+
+The following button supply you a way to switch between filters'view and folders'view.
+
+![switch between two views](image-2.png)
+
+### Setup Directories For Different Kinds Of Output Files
+
+Two output directoires are suggested to config in order to manager your project.
+
+The first one is the "Output Directory", and the secord one is the "Intermediate Directory".
+
+Choose Project -> YourProject Properties -> General
+
+Setup the above configurations as the following:
+
+![Configurations](image-3.png)
+
+You can check the meanings of all the macros that vs 2022 provides for you here.
+
+![Marcros](image-4.png)
