@@ -1,4 +1,6 @@
-# How The C++ Compiler Works
+# TheCherno C++ Lessons
+
+## How The C++ Compiler Works
 
 ### C++ Compiler's responsibility
 
@@ -6,7 +8,7 @@
 
 2. generate .obj file for every compiling unit.
 
-3. optimize your code. 
+3. optimize your code.
 
 ### An example of what ```#include``` doing (trust me, it's just coping and pasting)
 
@@ -35,7 +37,7 @@ Press ctrl + F7 to re-compile the Main.cpp
 
 Now you can find Main.i file in the following path:
 
-```
+```Bash
 D:\GitLab\Repo\C++\HelloWorld\HelloWorld\x64\Debug
 ```
 
@@ -46,7 +48,7 @@ Open this Main.i, you can see that:
 
 int main()
 {
-	return 0;
+    return 0;
 #line 1 "D:\\GitLab\\Repo\\C++\\HelloWorld\\HelloWorld\\Math.h"
 }
 #line 6 "D:\\GitLab\\Repo\\C++\\HelloWorld\\HelloWorld\\Mian.cpp"
@@ -56,15 +58,15 @@ Yes, the compiler copied the whole Math.h file and pasted where the ```#include`
 
 ### What is compiling unit, is it true that a .cpp file is a compiling unit?
 
-Generally, a compiling unit will produce a .obj file. 
+Generally, a compiling unit will produce a .obj file.
 
-But it doesn't mean that a .cpp file is a compiling unit. 
+But it doesn't mean that a .cpp file is a compiling unit.
 
-A .cpp file is just something that we can feed code to the compiler. 
+A .cpp file is just something that we can feed code to the compiler.
 
-Actually a .cpp file can be serveral compile units. 
+Actually a .cpp file can be serveral compile units.
 
-Yes, you can ```#include``` serveral .cpp files a .cpp file. See https://chatgpt.com/share/68286e49-7274-800f-8b34-3b705777d0b8
+Yes, you can ```#include``` serveral .cpp files a .cpp file. See <https://chatgpt.com/share/68286e49-7274-800f-8b34-3b705777d0b8>
 
 ### An example that compiler can optimize your code
 
@@ -86,28 +88,29 @@ int Add()
 
 Now, you can see a Math.asm file in the path :
 
-```
+```Bash
 D:\GitLab\Repo\C++\HelloWorld\HelloWorld\x64\Debug
 ```
 
 And from this assembly file, you can see the assembly code of function Add :
 
 ```C++ {.line-numbers}
-?Add@@YAHXZ PROC					; Add, COMDAT
+?Add@@YAHXZ PROC; Add, COMDAT
 ; File D:\GitLab\Repo\C++\HelloWorld\HelloWorld\Math.cpp
 ; Line 2
 $LN4:
-	sub	rsp, 40					; 00000028H
-	lea	rcx, OFFSET FLAT:__67D1A559_Math@cpp
-	call	__CheckForDebuggerJustMyCode
-	mov	eax, 7
+    sub rsp, 40; 00000028H
+    lea rcx, OFFSET FLAT:__67D1A559_Math@cpp
+    call    __CheckForDebuggerJustMyCode
+    mov eax, 7
 ; Line 4
-	add	rsp, 40					; 00000028H
-	ret	0
-?Add@@YAHXZ ENDP					; Add
-_TEXT	ENDS
+    add rsp, 40; 00000028H
+    ret 0
+?Add@@YAHXZ ENDP; Add
+_TEXT  ENDS
 END
 ```
+
 You can see that the compiler computed the result of 5 + 2 while compiling instead of storing the constant values 5 and 2 in the register :
 
 ```C++ {.line-numbers}
@@ -138,9 +141,9 @@ Head files with .h head files are c head files, otherwise, they are c++ head fil
 int main()
 {
 	int variable = 17;
-	variable++;
-	
-	return 0;
+    variable++;
+
+    return 0;
 }
 ```
 
@@ -159,3 +162,183 @@ Type "&variable" inside "Adress" -> Enter
 Now you should see the memory content of the variable "variable" below.
 
 ![viewing memory of variable](image.png)
+
+### Viewing Disassembly Code
+
+**<font color = "gold">Under debug, when your program runs into a breakpoint</font>**，you can check the assemably code by two ways.
+
+One way by right clicking the mouse and selecting the "Go to Disassembly" option of the menu.
+
+Another way is the shortcut-keys way. Press Ctrl+K, and then press G. Remeber releasing after pressing Ctrl+K.
+
+You can see the following window if there's no accidents.
+
+![disassembly](image-1.png)
+
+## Setup Your C++ Projects in Visual Studio 2022
+
+### Filters VS Folders
+
+There are filters in Visual Studio. Filters are something that Visual Studio helps you to classify your files. They are not existed in your disk.
+
+Folders are real folders that created actual folders in your disk.
+
+Your can treat filters as virtual folders.
+
+The following button supply you a way to switch between filters'view and folders'view.
+
+![switch between two views](image-2.png)
+
+### Setup Directories For Different Kinds Of Output Files
+
+Two output directoires are suggested to config in order to manager your project.
+
+The first one is the "Output Directory", and the secord one is the "Intermediate Directory".
+
+Choose Project -> YourProject Properties -> General
+
+Setup the above configurations as the following:
+
+![Configurations](image-3.png)
+
+You can check the meanings of all the macros that vs 2022 provides for you here.
+
+![Marcros](image-4.png)
+
+## Pointer VS Reference
+
+|feature|pointer|reference|
+|-------|-------|---------|
+|can be null|yes|no, **must be binded after created**|
+|can be rebinded|yes|no, **can be binded just one time**|
+|usage|*/&|just like a variable|
+|initialization|no need to initialize when created|**must be initialized when created**|
+|space|take up space in memory(32 bits for 32-bit applications, 64 bits for 64-bit applications)|**no space occupied in memeory**|
+
+see: <https://chatgpt.com/s/t_6857c520e1b0819191a1d525ce030d7a>
+
+## Static in C++
+
+### Staic Outside Class And Struct
+
+Static variables or functions outside class and struct. This kind of variables or functions can be used within the compiling unit where they are defined for linking. For example:
+
+```C++ {.line-numbers}
+// math.cpp
+static int s_Variable = 7; // s_Varible can be "seen" by then linker within this file
+int g_Variable = 77; // g_Variable is a global variable and can be "seen" across different cpp files (or compiling unit)
+
+// main.cpp
+...
+static int s_Variable = 17;
+extren int g_Variable; // important, witouth the statement, we'll get an error, undefined idtifiner
+
+int main()
+{
+   cout << s_Variable << endl; // print 17
+   cout << g_Variable << endl; // print 77 
+}
+
+```
+
+If
+
+```C++ {.line-numbers}
+// math.cpp
+static int s_Variable = 7;
+int g_Variable = 10;
+
+// log.cpp
+int g_Variable = 17;
+
+// main.cpp
+...
+extern g_Variable;
+int main()
+{
+   cout << g_Variable << endl; // linking error : one or more multiply defined symbols found 
+}
+```
+
+Anyway, "static" can be treated like "private" of class and struct. Just remember that static variables and functions have internal linkage. **And this means that you should not declare static variabels or functions inside a header file!!!**
+
+### Static Inside Class and Struct
+
+1. Static variables in class and struct are shared by all objects instanced from the class and struct.
+
+2. Static functions in class can only be called with the class name, but not an object.
+
+3. Static functions can not access non-static member variables.
+
+## The Use Of Virual Function
+
+### Normal Virtual Functions
+
+Example:
+
+```C++ {.line-numbers}
+class Entity
+{
+public:
+	virtual void GetName() // the key word virtual decalres that this function is a virtual function
+	{
+		cout << "Entity" << endl;
+	}
+};
+
+class Player : public Entity
+{
+public:
+	void GetName() override // the key word "override" is highly recommended after C++11 standard
+	{
+		cout << "Player" << endl;
+	}
+};
+```
+
+Functions those can be overrided should be declared "virtual".
+
+### Pure Virtual Functions
+
+1. Virtual functions are allowed to be undefined.
+
+2. Classes with undefined virtual function(s) can not be instantiated. If virtual functions are all defined in the parent class, subclass can be instantiated.
+
+Example:
+
+```C++ {.line-numbers}
+class Printable
+{
+public:
+	virtual void PrintClassName() = 0;
+};
+
+class Entity : Printable
+{
+public:
+	void PrintClassName() override
+	{
+		cout << "Entity" << endl;
+	}
+};
+
+class Player : public Entity
+{
+public:
+	void PrintClassName() override
+	{
+		cout << "Player" << endl;
+	}
+};
+
+void PrintClass(Printable* object)
+{
+	object->PrintClassName();
+}
+
+int main()
+{
+    Printable pp* = new Printable; // compiling error: 'Printable': cannot instantiate abstract class
+    return 0;
+}
+```
