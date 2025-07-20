@@ -270,7 +270,7 @@ Anyway, "static" can be treated like "private" of class and struct. Just remembe
 
 3. Static functions can not access non-static member variables.
 
-## The Use Of Virual Function
+## The Use Of Vitual Function
 
 ### Normal Virtual Functions
 
@@ -342,3 +342,117 @@ int main()
     return 0;
 }
 ```
+
+## Visibility In C++
+
+Thera are 3 types of visibility for members, including variables and functions, of a class in C++. They are **private**, **protected**, **public**.
+
+**Protected** members are more visiable than **private** members but less than **public** members.
+
+You can not access  **private** members with objects or inside a subclass (except for **friend**). But you can actually access  **protected** members in a subclass. objects still can not.
+
+***<font color = gold>There is one thing you should know that visibility has nothing to do with the performance of your code. Visibility isn't something that a CPU concerns about.</font>***
+
+Let's take "private" as an example. When you make a member be private. You are reminding yourself or other developers that this member should only use inside this class. Considering the code following:
+
+```C++ {.line-numbers}
+// Panel.h
+class Panel{
+private:
+	int m_X,m_Y;
+	void Refresh();
+public:
+	void SetPositionX(int PosX);
+	void SetPositionY(int PosY);
+	...
+}
+
+// Panel.cpp
+void Panel::SetPositionX(int PosX)
+{
+	m_X = PosX;
+	Refresh();
+}
+
+void Panel::SetPositionY(int PosY)
+{
+	m_Y = PosY;
+	Refresh();
+}
+```
+Making ```m_X``` and ```m_Y``` be private force other developers who want to set the position of an UI panel to call SetPositionX and SetPositionY rather than just set the value of the variable members. Because ```SetPositionX``` and ```SetPositionY``` also call ```Refresh``` to refresh the panel. If you just set the value of the variabel members you may forget the refresh.
+
+
+## (Raw) Array
+
+There two ways for you to declare an array in C++. For example:
+
+```C++ {.link-numbers}
+int ArrayOfSize7[7];
+int* AnotherArrayOfSize7[7] = new int[7];
+```
+The differcens between them is which area they are created in memory.
+
+```C++ {.link-numbers}
+int ArrayOfSize7[7]; // created in stack
+int* AnotherArrayOfSize7[7] = new int[7]; // create in heap
+```
+
+Created in stack means you don't nedd to delete it yourself, because the scope of the life time of the array created in stack ends with the scope.
+
+However, array created in heap will exist throughout the running program and means that you need to delete it yourself otherwise there may be memory leak.
+
+Here is an example of what not to do with a array created in stack.
+
+```C++ {.line-numbers}
+int* GenerateArrayOfSize7()
+{
+	int Array[7];
+	
+	for (int i = 0; i < 7; i++)
+		Array[i] = 7;
+
+	return Array;
+}
+
+int main()
+{
+	int* ArrayPointer = GenerateArrayOfSize7(); // BIG ISSUE!!!
+	cout << ArrayPointer[0] << endl;
+	return 0;
+}
+```
+
+The problem is in the GenerateArrayOfSize7() function.
+
+It declares a local array int ```Array[7]``` on the stack, fills it with values, and then returns a pointer to this local array.
+
+However, when the function exits, the local array goes out of scope and is destroyed. The memory that ```Array``` occupied is no longer valid.
+
+When ```main()``` tries to access ```ArrayPointer[0]```, it's attempting to read from memory that may have been deallocated or reused for other purposes. This is **undefined behavior** - the program might appear to work sometimes, crash other times, or produce garbage values. Use heap array instead of stack array.
+
+Always be careful with a function that return a local pointer.
+
+By the way, there are no (normal) ways for you to get the number of elements of an array. But you can do with some tricks(not recommended). For example:
+
+```C++ {.line-numbers}
+int array[5];
+int count = sizeof(array) / sizeof(int);
+```
+
+The function ```sizeof``` returns how many bytes of an variable or a type.
+
+This would not work for heap arrays.
+
+```C++ {.line-numbers}
+int* array = new int[5];
+int count = sizeof(array) / sizeof(int)
+```
+
+In this code, ```sizeof(array)``` will return the size of the pointer variable array, which is 8 in 64-bit operating system, rather than the size of the array it points to.
+
+Lastly, the C++ standard library provides you a class named ```array```, it's much more safer and convinent for you to use. But also when it comes to performance, raw array is always better. Whicn one to use is up to you. 
+
+You want performance? Then use raw array, but carefully.
+
+You want convinence and safety? Then choose array from the standard library and make your life eaiser.
