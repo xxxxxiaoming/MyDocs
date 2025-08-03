@@ -225,13 +225,13 @@ Static variables or functions outside class and struct. This kind of variables o
 
 ```C++ {.line-numbers}
 // math.cpp
-static int s_Variable = 7; // s_Varible can be "seen" by then linker within this file
+static int s_Variable = 7; // s_Varible can be "seen" by the linker within this file
 int g_Variable = 77; // g_Variable is a global variable and can be "seen" across different cpp files (or compiling unit)
 
 // main.cpp
 ...
 static int s_Variable = 17;
-extren int g_Variable; // important, witouth the statement, we'll get an error, undefined idtifiner
+extern int g_Variable; // important, witouth this statement, we'll get an error, undefined idtifiner
 
 int main()
 {
@@ -268,7 +268,7 @@ Anyway, "static" can be treated like "private" of class and struct. Just remembe
 
 2. Static functions in class can only be called with the class name, but not an object.
 
-3. Static functions can not access non-static member variables.
+3. **Static functions can not access non-static member variables.**
 
 ## The Use Of Vitual Function
 
@@ -351,7 +351,7 @@ Thera are 3 types of visibility for members, including variables and functions, 
 
 You can not access  **private** members with objects or inside a subclass (except for **friend**). But you can actually access  **protected** members in a subclass. objects still can not.
 
-***<font color = gold>There is one thing you should know that visibility has nothing to do with the performance of your code. Visibility isn't something that a CPU concerns about.</font>***
+**<font color = gold>There is one thing you should know that visibility has nothing to do with the performance of your code. Visibility isn't something that a CPU concerns about.</font>**
 
 Let's take "private" as an example. When you make a member be private. You are reminding yourself or other developers that this member should only use inside this class. Considering the code following:
 
@@ -380,8 +380,8 @@ void Panel::SetPositionY(int PosY)
 	Refresh();
 }
 ```
-Making ```m_X``` and ```m_Y``` be private force other developers who want to set the position of an UI panel to call SetPositionX and SetPositionY rather than just set the value of the variable members. Because ```SetPositionX``` and ```SetPositionY``` also call ```Refresh``` to refresh the panel. If you just set the value of the variabel members you may forget the refresh.
 
+Making ```m_X``` and ```m_Y``` be private force other developers who want to set the position of an UI panel to call SetPositionX and SetPositionY rather than just set the value of the variable members. Because ```SetPositionX``` and ```SetPositionY``` also call ```Refresh``` to refresh the panel. If you just set the value of the variabel members you may forget the refresh.
 
 ## (Raw) Array
 
@@ -391,6 +391,7 @@ There two ways for you to declare an array in C++. For example:
 int ArrayOfSize7[7];
 int* AnotherArrayOfSize7[7] = new int[7];
 ```
+
 The differcens between them is which area they are created in memory.
 
 ```C++ {.link-numbers}
@@ -451,8 +452,270 @@ int count = sizeof(array) / sizeof(int)
 
 In this code, ```sizeof(array)``` will return the size of the pointer variable array, which is 8 in 64-bit operating system, rather than the size of the array it points to.
 
-Lastly, the C++ standard library provides you a class named ```array```, it's much more safer and convinent for you to use. But also when it comes to performance, raw array is always better. Whicn one to use is up to you. 
+Lastly, the C++ standard library provides you a class named ```array```, it's much more safer and convinent for you to use. But also when it comes to performance, raw array is always better. Whicn one to use is up to you.
 
 You want performance? Then use raw array, but carefully.
 
 You want convinence and safety? Then choose array from the standard library and make your life eaiser.
+
+## String Literals In C++
+
+First of all, remember that the type of string literals are ```const char[]```. You can't assign an string literal to a variable of type ```const char*``` after may be C++11. For example:
+
+```C++{.line-numbers}
+char* name = "Jason"; // baned, compiling error
+char name[] = "Jason"; // this is ok.
+```
+
+The difference between line 1 and line 2 is whether new memories are allocated. Line 2 obviously allocated new memories and copy the content of the string literal to the new memories.
+
+Types of char and their size:
+
+|Type|Size|
+|----|----|
+|char|1 bytes|
+|wchar_t|1/2/4 bytes, depend on your operating system, usually 2 or 4 bytes, exp. 2 bytes in windows, 4 bytes in linux and macOS|
+|char16_t|2 bytes|
+|char32_t|4 bytes|
+
+## Const In C++
+
+Function members of classes with const:
+
+```C++{.line-numbers}
+// MyClass.h
+#pragma once
+
+class Entity
+{
+private:
+    int m_X, m_Y;
+public:
+    int GetterX() const;
+    int GetterY() const;
+    Entity(int x, int y);
+};
+
+
+// MyClass.cpp
+#include "MyClass.h"
+
+int Entity::GetterX() const
+{
+    return m_X;
+}
+
+int Entity::GetterY() const
+{
+    return m_Y;
+}
+
+Entity::Entity(int x, int y)
+{
+    m_X = x;
+    m_Y = y;
+}
+```
+
+```const``` means that this member function won't (and can't) change any data memebres (except mutable variable) within the function.
+
+One thing you need to know is that const obejcts can't call non-const function members. Because non-const function members can't guarantee that they won't change data members within the funtion. For example:
+
+```C++{.line-numbers}
+// main.cpp
+// MyClass.h
+#pragma once
+
+class Entity
+{
+private:
+    int m_X, m_Y;
+public:
+    int GetterX();
+    int GetterY() const;
+    Entity(int x, int y);
+};
+
+
+// MyClass.cpp
+#include "MyClass.h"
+
+int Entity::GetterX()
+{
+    return m_X;
+}
+
+int Entity::GetterY() const
+{
+    return m_Y;
+}
+
+Entity::Entity(int x, int y)
+{
+    m_X = x;
+    m_Y = y;
+}
+
+// main.cpp
+int main()
+{
+	const Entity e;
+	cout << e.GetterX << endl; // error.Cannot convert this argument from type const Entity to type Entity: function is missing const qualifier
+}
+```
+
+Well, you can change data members which with the key word ```mutable``` even in ```const``` member functions. For example:
+
+```C++{.line-numbers}
+// MyClass.h
+#pragma once
+
+class Entity
+{
+private:
+    int m_X, m_Y;
+	mutable int callingCount;
+public:
+    int GetterX() const;
+    int GetterY() const;
+    Entity(int x, int y);
+};
+
+
+// MyClass.cpp
+#include "MyClass.h"
+
+int Entity::GetterX() const
+{
+	callingCount++; // This is OK because callingCount is mutable
+    return m_X;
+}
+
+int Entity::GetterY() const
+{
+    return m_Y;
+}
+
+Entity::Entity(int x, int y)
+{
+    m_X = x;
+    m_Y = y;
+}
+
+```
+
+## Member Initializer List
+
+Usage of member initializer list:
+
+```C++{.line-numbers}
+// MyClass.h
+class Entity
+{
+private:
+    std::string m_Name;
+    int m_Number;
+public:
+    Enitty();
+    const std::string& GetEntityNameString();
+};
+
+// MyClass.cpp
+#include "MyClass.h"
+
+Entity::Entity()
+    : m_Name(std::string("Unknown")), m_Number(-1) 
+    // The members' order here should be exactly same as their declaration order in MyClass.h!!! Don't do this:
+    // m_Number(-1), m_Name(std::string("Unknown"))
+{
+    // Do other things for initialization
+    ...
+}
+
+const std::string& GetEntityNameString()
+{
+    return m_Name;
+}
+```
+
+Attention! As the comment says, data members' order in initializer list should be exactly same as their declaration order. Because data members are initialized by order according to their declaration order!!!
+
+Why should we use initializer list? Well, it's not just about coding style but alose about performance. For example:
+
+```C++{.line-numbers}
+// MyClass.h
+#include <string>
+
+class Example
+{
+public:
+    Example();
+    Example(int variable);
+};
+
+class Entity
+{
+private:
+    std::string m_Name;
+	Example m_Example;
+public:
+    Entity();
+    const std::string& GetEntityName();
+};
+
+// MyClass.cpp
+#include "MyClass.h"
+
+Entity::Entity()
+    : m_Name(std::string("Unknown")), m_Example(Example(17))
+{
+    // Do other things for initialization
+}
+
+const std::string& Entity::GetEntityName()
+{
+    return m_Name;
+}
+
+Example::Example()
+{
+    std::cout << "Default constructor called" << std::endl;
+}
+
+Example::Example(int variable)
+{
+	std::cout << "Constructor with variable: " << variable << std::endl;
+}
+
+
+// Main.cpp
+#include <iostream>
+#include "MyClass.h"
+
+int main()
+{
+	Entity e;
+	
+	return 0;
+}
+```
+
+The output of this code will be:
+**Constructor with variable: 17**
+
+But if we change the default constructor of Entity like this:
+
+```C++{.line-numbers}
+Entity::Entity()
+    : m_Name(std::string("Unknown"))
+{
+    m_Example = Example(17);
+    // Do other things for initialization
+}
+```
+
+The output will be:
+**Default constructor called.**
+**Constructor with variable: 17**
+
+Now you can see the difference between them. The second code will need to create a temporary object of ```Example``` but the first code just create the member object ```m_Example```.
