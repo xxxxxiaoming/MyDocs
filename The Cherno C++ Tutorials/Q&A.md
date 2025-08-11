@@ -604,6 +604,8 @@ Entity::Entity(int x, int y)
 
 ```
 
+The other thing you should remember is that: ```const``` applies to whatever is immediately to its left (or to the type if there's nothing to the left).
+
 ## Member Initializer List
 
 Usage of member initializer list:
@@ -719,3 +721,153 @@ The output will be:
 **Constructor with variable: 17**
 
 Now you can see the difference between them. The second code will need to create a temporary object of ```Example``` but the first code just create the member object ```m_Example```.
+
+
+## Implict Conversion and Explict Keyword
+
+Let's look this code:
+
+```C++{.line-numbers}
+// MyClass.h
+#pragma once
+#include <string>
+
+
+class Entity
+{
+private:
+    std::string m_Name;
+    int m_Age;
+public:
+    Entity();
+    Entity(const std::string& name);
+    Entity(int age);
+    const std::string& GetEntityName();
+};
+
+// MyClass.cpp
+#include <iostream>
+#include "MyClass.h"
+
+Entity::Entity()
+    : m_Name(std::string("Unknown")), m_Age(-1)
+{
+    // Do other things for initialization
+}
+
+Entity::Entity(const std::string& name)
+    :m_Name(name)
+{
+    // Do other things for initialization
+}
+
+Entity::Entity(int age)
+    :m_Age(age)
+{
+    // Do other things for initialization
+}
+
+const std::string& Entity::GetEntityName()
+{
+    return m_Name;
+}
+
+// Main.cpp
+#include <iostream>
+#include "MyClass.h"
+
+
+int main()
+{
+	Entity e1 = std::string("Jason"); // implict conversion happens here. Because we have defined a constuctor function wiht one parameter of type std::string and this function's declaration doesn't have the keyword "explict"
+	Entity e2 = 32; // same as the last code.
+	return 0;
+}
+```
+
+If we don't want the compiler to do the implict conversion in this case, we can put the keyword ```explict``` at the begin of the consturctors just like this:
+
+```C++{.line-numbers}
+// MyClass.h
+#pragma once
+#include <string>
+
+
+class Entity
+{
+private:
+    std::string m_Name;
+    int m_Age;
+public:
+    Entity();
+    explict Entity(const std::string& name);
+    explict Entity(int age);
+    const std::string& GetEntityName();
+};
+```
+
+## The "this" Keyword In C++
+
+First you can treat ```this``` as a constant pointer. Look the follwing code:
+
+```C++{.line-numbers}
+...
+Entity* e = this; //legal
+Entity* const e = this; // legal
+Entity*& e = this; // illegal!!!
+Entity*& const = this; // illegal!!! same as line 4
+Entity* const& e = this; //legal
+```
+
+```const``` is totally unnecessary for an refrence!!! ```int& const``` is same as ```int&```
+
+## How To Use Smart Pointers
+
+First of all, small pointers help you to manage memory allocated on heap(```new``` and ```delete```). Smart pointer frees you from ```delete``` memory manually.
+
+There are three kinds of smart pointers in C++ which are ```unique_ptr```, ```shared_ptr```, ```weak_ptr```. Let's see how to use them and what's the difference among these three.
+
+```C++{.line-numbers}
+#include <memory>
+#include <iostream>
+#include <string>
+#include "MyClass.h"
+
+int main()
+{
+	std::shared_ptr<Entity> sPtr;
+	{
+		std::unique_ptr<Entity> uPtrA(new Entity(std::string("Unique_Jason1"), std::string("17"), 32)); // Unsafe
+		std::unique_ptr<Entity> uPtrB = std::make_unique<Entity>(std::string("Unique_Jason2"), std::string("17"), 32); // Safe and recommended!!!
+		//std::unique_ptr<Entity> uPtrC = uPtrA; // Illegal!!!
+
+		std::shared_ptr<Entity> sPtrA(new Entity(std::string("Shared_Jason1"), std::string("17"), 32)); // Less efficiency
+		std::shared_ptr<Entity> sPtrB = std::make_shared<Entity>(std::string("Shared_Jason2"), std::string("17"), 32); // More efficiency and recommended!!!
+		std::shared_ptr<Entity> sPtrC = sPtrA; // Legal!!!
+
+		//std::weak_ptr<Entity> wPtr(new Entity()); // Illegal!!!
+		std::weak_ptr<Entity> wPtr = sPtrB;
+
+		sPtr = sPtrA;
+
+		std::cout << uPtrA->GetEntityName() << std::endl << std::endl;
+		std::cout << sPtrA->GetEntityName() << std::endl << std::endl;
+		//std::cout << wPtr->GetEntityName() << std::endl; // Illegal!!!
+	}
+	return 0;
+}
+```
+
+```unique_ptr``` can't not be assigned or assign to other ```unique_ptr```, the name reveals that the memory it points to belongs to itself. And within the class, the copy constructor and assignment constructor are bot marked ```delete```.
+
+However, ```shared_ptr``` can do the assignment things. It uses reference counting to decide when to delete the memory(delete when conting down to 0).
+
+```weak_ptr``` also can do the assignment things but it won't add reference counting. For example, the code above, the memory ```sPtrB``` points to will be destroyed after line 26, but memory ```sPtrA``` points to will not.
+
+## Copy Constructor
+
+Two things you need to know of this topic:
+
+1. C++ will provide you with a default copy constructor. **However!!! This constructor does shallow copy not deep copy!!!**
+
+2. Using refrence as parameter of a function for performance!!! (Avoid copying)
