@@ -185,7 +185,7 @@ Folders are real folders that created actual folders in your disk.
 
 Your can treat filters as virtual folders.
 
-The following button supply you a way to switch between filters'view and folders'view.
+The following button provides you a way to switch between filters'view and folders'view.
 
 ![switch between two views](image-2.png)
 
@@ -722,7 +722,6 @@ The output will be:
 
 Now you can see the difference between them. The second code will need to create a temporary object of ```Example``` but the first code just create the member object ```m_Example```.
 
-
 ## Implict Conversion and Explict Keyword
 
 Let's look this code:
@@ -785,7 +784,7 @@ int main()
 }
 ```
 
-If we don't want the compiler to do the implict conversion in this case, we can put the keyword ```explict``` at the begin of the consturctors just like this:
+If we don't want the compiler to do the implict conversion in this case, we can put the keyword ```explict``` at the begin of consturctors just like this:
 
 ```C++{.line-numbers}
 // MyClass.h
@@ -823,9 +822,9 @@ Entity* const& e = this; //legal
 
 ## How To Use Smart Pointers
 
-First of all, small pointers help you to manage memory allocated on heap(```new``` and ```delete```). Smart pointer frees you from ```delete``` memory manually.
+First of all, small pointer helps you to manage memory allocated on heap(```new``` and ```delete```). Smart pointer frees you from ```delete``` memory manually.
 
-There are three kinds of smart pointers in C++ which are ```unique_ptr```, ```shared_ptr```, ```weak_ptr```. Let's see how to use them and what's the difference among these three.
+There are three kinds of smart pointer in C++ which are ```unique_ptr```, ```shared_ptr```, ```weak_ptr```. Let's see how to use them and what's the difference among these three.
 
 ```C++{.line-numbers}
 #include <memory>
@@ -871,3 +870,292 @@ Two things you need to know of this topic:
 1. C++ will provide you with a default copy constructor. **However!!! This constructor does shallow copy not deep copy!!!**
 
 2. Using refrence as parameter of a function for performance!!! (Avoid copying)
+
+## The Arrow Operator('->') In C++
+
+Here is a shocking example of how to use the arrow operator to get the member offset of a struct. Trust me, this is amazing.
+
+```C++{.line-numbers}
+#include <iostream>
+
+struct Vector3 {
+	float x, y, z;
+};
+
+int main()
+{
+	int offsetX = (int)&(((Vector3*)nullptr)->x);
+	int	offsetY = (int)&(((Vector3*)nullptr)->y);
+	int offsetZ = (int)&(((Vector3*)nullptr)->z);
+
+	std::cout << "Offset of x in Vector3 type: " << offsetX << std::endl;
+	std::cout << "Offset of y in Vector3 type: " << offsetY << std::endl;
+	std::cout << "Offset of z in Vector3 type: " << offsetZ << std::endl;
+
+	return 0;
+}
+```
+
+Let's breakdown how this code work.
+
+First, The ```->``` operator is syntactic sugar for dereferencing a pointer and accessing a member. These two expression are equivalent:
+
+```C++{.line-numbers}
+ptr->member
+(*ptr).member
+```
+
+Second, let's see what ```int offsetX = (int)&(((Vector3*)nullptr)->x);``` step by step:
+
+1. ```(Vector3*)nullptr``` Casts the null pointer to a ```Vector3*``` type
+2. ```((Vector3*) nullptr)->x``` Access the ```x``` member
+3. ```(int)&(((Vector3*)nullptr)->x)``` Takes the address of that member
+
+Why there is no crashing in this code? Well, because no memory accessing happens in this code. When you do ```ptr->member```, the compiler calculates the the address as:
+
+```C++{.line-numbers}
+address_of_member = base_pointer + offset_of_member
+```
+
+Since ```nullptr``` is address 0, the resulting address is exactly the offset of the member within the struct!
+
+And following ```((Vector3*) nullptr)->x```, operator ```&``` prevents the dereference that ```->``` would normally perform.
+
+The standard approach of this kind of behavior is to use ```offsetof```, here is an example:
+
+```C++{.line-numbers}
+#include <cstddef>
+
+int offsetX = offsetof(Vector3, x);
+int offsetY = offsetof(Vector3, y);  
+int offsetZ = offsetof(Vector3, z);
+```
+
+```(int)&(((Vector3*)nullptr)->x)``` is essentially a manual implementation of what ```offset``` does internally, but ```offset``` if more portable and explicitly designed for this purpose.
+
+## Optimizing The Usage Of std::vertor In C++
+
+This is about an example of how to avoid copying and reallocating memory when we add element to a ```std::vertor``` object.
+
+Take a look at this code:
+
+```C++{.line-numbers}
+struct Vertex {
+	float x, y, z;
+	Vertex(const float& x, const float& y, const float& z)
+		: x(x), y(y), z(z)
+	{
+
+	}
+	Vertex(const Vertex& vertex)
+		: x(vertex.x), y(vertex.y), z(vertex.z)
+	{
+		std::cout << "Copied!" << std::endl;
+	}
+};
+
+
+std::ostream& operator<<(std::ostream& ostream, const Vertex& vertex)
+{
+	ostream << vertex.x << ", " << vertex.y << ", " << vertex.z;
+	return ostream;
+}
+
+int main()
+{
+	std::vector<Vertex> vertices;
+
+	vertices.push_back(Vertex(1, 2, 3));
+	vertices.push_back(Vertex(4, 5, 6));
+	vertices.push_back(Vertex(7, 8, 9));
+
+	std::cout << "Done!" << std::endl;
+
+	return 0;
+}
+```
+
+Runing this code, you will see that it prints "Copied!" six times!!! It means that it will do memory coping six times!!! That is un acceptable!!! That is slow.
+
+So why six times? Here is the thing:
+
+```C++{.line-numbers}
+std::vector<Vertex> vertices; // construct a verctor with size 0
+vertices.push_back(Vertex(1,2,3)); // extend vertices to size 1 (memory reallocating) and create an object of Vertex(1,2,3) and copy it to vertices, 1 time coping.
+vertices.push_back(Vertex(4,5,6)); // extend vertices to size 2(double the size usually, memory reallocating), copy Vertex(1,2,3) which exist in the former memory, and create Vertex(4,5,6) and copy it to vertices, 3 times coping so far.
+vertices.push_back(Vertex(7,8,9)); // same as vertices.push_back(Vertex(4,5,6)), 6 times coping in total.
+```
+
+Let's change this code like this:
+
+```C++{.line-numbers}
+int main()
+{
+	std::vector<Vertex> vertices;
+	vertices.reserve(3); // create a memory block for 3 vertex object directly, avoid reallocating memory frequently
+
+	vertices.emplace_back(1,2,3); // pass the parameters list of the contructor in the actual memory of vertices, avoid copying operatation.
+	vertices.emplace_back(4,5,6);
+	vertices.emplace_back(7,8,9);
+
+	std::cout << "Done!" << std::endl;
+
+	return 0;
+}
+```
+
+Run the above code, see that? 0 "Copied!" is printed! This code is faster a lot!
+
+## Using Libraries In C++ (Static Linking)
+
+Take GLFW library as an example, let's see how to use external libraries in your solution.
+
+Firstly, download glfw lib, 64-bit or 32-bit is up to your solution. If you want to build a 32-bit application, choose 32-bit version, otherwise, choose 64-bit version. Just make sure they match, your solution and the version of the lib.
+
+Secondly, put the "include" files and lib into your solution, for example, create an folder called "Dependices" and put them under this folder:
+
+![Dependices Folder](image-6.png)
+
+Thirdly, Config "Additional Include Directories" and "Additional Library Directories" and "Additional Dependencies":
+
+![Additional Include Directories](image-7.png)
+
+![Additional Library Directories](image-8.png)
+
+![Additional Dependencies](image-9.png)
+
+Now, use them as other external libraries as the same.
+
+```C++{.line-numbers}
+#include <iostream>
+#include <GLFW/glfw3.h>
+
+int main()
+{
+	int initResult = glfwInit();
+
+	std::cout << "Done!" << " " << initResult << std::endl;
+
+	return 0;
+}
+```
+
+## Using Dynamic Libraries in C++
+
+Dynamic libaray allow you to "link" when you lauch your application. This means that functions of the library are loaded into memory when application is running.
+
+This topic introduces you a standard, recommended way to use dynamic library in C++. You should consider using this approach when you tend to do dynamic linking in C++, trust me, this will make your life easier. LOL.
+
+So, there are two files needed to use dynamic library. One is of course the .dll file, and the other is the xxxdll.lib file.
+
+xxxdll.lib always contains the locations of functions in the dynamic library, these two files are compiled at the same time to ensure that they are mached.
+
+Take GLFW lib as an example to show how to use glfw2.dll instead of glfw3.lib.
+
+Firstly, Replace "glfw3.lib" to "glfw3dll.lib" in ```Linker``` -> ```Input``` -> ```Additional Dependencies```:
+
+![Add glfw3dll.lib](image-10.png)
+
+Secondly, Add "GLFW_DLL" in ```C/C++``` -> ```Preprossor``` -> ```Preprossor Definitions```, without this, your application will still work, but, Claude 4 recommends do not skip this step.
+
+![add "GLFW_DLL" macro](image-11.png)
+
+Thirdly, put the glfw3.dll under the path of your .exe. This path is always auto-searching path for your application. Or you will get an runtime error:
+
+![dll path](image-12.png)
+
+![runtime error](image-13.png)
+
+I have a lot of questions about using dynamic libraries. Including:
+
+1. Can we use dynamic library without the xxxdll.lib file. Yes(Manual Loading), but it's quit complicated.
+2. Are there any differences in performance between these two approaches? No significant performance differences.
+3. Why if I delete "GLFW_DLL" in "Preprossor Definitions", the application still works? The glfw3dll.lib has enough information for the linker to link properly.
+
+See <https://claude.ai/share/dfc07bab-c09f-42dd-aa50-5396e0cf628b> for more details.
+
+## Making And Working With Libraries in C++ (Mutiple Projects in Visual Studio)
+
+We create a soltution in Visual Studio 2022 with mutiple projects to see how to make and work with static library in C++.
+
+Firstly, create a solution in Visual Studio Like this:
+
+![Game Solution](image-16.png)
+
+![Game Solution Directory](image-15.png)
+
+Secondly, set configuration type of 'Engine' as 'Static Library(.lib)' by right clicking ```Engine```->```Properties``` -> ```Configuration Properties``` -> ```Configuration Types```
+
+![Configuration type of Engine](image-17.png)
+
+Thirdly, add functions/classes, whatever you want in Project Engine. In this case, we add a simple function ```PrintMessage```:
+
+```C++{.line-numbers}
+// Engine.h
+#pragma once
+
+namespace Engine {
+	void PrintMessage();
+}
+
+// Engine.cpp
+#include "Engine.h"
+#include <iostream>
+
+namespace Engine{
+	void PrintMessage()
+	{
+		std::cout << "Engine Ver 1.0" << std::endl;
+	}
+}
+
+// Application.cpp
+#include "Engine.h"
+
+int main()
+{
+	Engine::PrintMessage();
+}
+```
+
+Remeber to add the directory of ```Engine.h```to the ```Additional Include Dierctories``` of project ```Game```.
+
+Lastly, **right clicking ```Game``` -> ```Add``` -> ```Reference``` -> choose ```Engine```**. With this operation, you don't need to do things introduced in the last topic **Using Libraries in C++** any more. The IDE will automatically take ```Engine``` as ```Game```'s dependency. When you build ```Game```, the IDE will automatically build ```Engine``` as well. This is quite convenient, isn't is? Good for a easy life. LOL.
+
+## Templates In C++
+
+Examples:
+
+```C++{.line-numbers}
+template <typename T>
+void Print(T value)
+{
+	std::cout << value << std::endl;
+}
+
+template <typename ArrayType, int Size> // parameters of templates can be integer, float whatever you want, like functions can have
+class Array
+{
+private:
+	ArrayType m_Array[Size];
+public:
+	int GetSize()
+	{
+		return Size;
+	}
+};
+
+int main()
+{
+	Print<int>(7);
+	Print(7.7f);
+	
+	Array<int, 7> array;
+	int size = array.GetSize();
+
+	std::cout << "Array Size: " << size << std::endl;
+
+}
+```
+
+Cherno suggests that we should not go to far with templates (don't make them too complicated), but, teamplates can also make your work eaiser.
