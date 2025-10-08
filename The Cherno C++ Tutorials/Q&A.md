@@ -462,7 +462,7 @@ You want convinence and safety? Then choose array from the standard library and 
 
 First of all, remember that the type of string literals are ```const char[]```. You can't assign an string literal to a variable of type ```const char*``` after may be C++11. For example:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 char* name = "Jason"; // baned, compiling error
 char name[] = "Jason"; // this is ok.
 ```
@@ -482,7 +482,7 @@ Types of char and their size:
 
 Function members of classes with const:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 // MyClass.h
 #pragma once
 
@@ -521,7 +521,7 @@ Entity::Entity(int x, int y)
 
 One thing you need to know is that const obejcts can't call non-const function members. Because non-const function members can't guarantee that they won't change data members within the funtion. For example:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 // main.cpp
 // MyClass.h
 #pragma once
@@ -566,7 +566,7 @@ int main()
 
 Well, you can change data members which with the key word ```mutable``` even in ```const``` member functions. For example:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 // MyClass.h
 #pragma once
 
@@ -610,7 +610,7 @@ The other thing you should remember is that: ```const``` applies to whatever is 
 
 Usage of member initializer list:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 // MyClass.h
 class Entity
 {
@@ -644,7 +644,7 @@ Attention! As the comment says, data members' order in initializer list should b
 
 Why should we use initializer list? Well, it's not just about coding style but alose about performance. For example:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 // MyClass.h
 #include <string>
 
@@ -707,7 +707,7 @@ The output of this code will be:
 
 But if we change the default constructor of Entity like this:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 Entity::Entity()
     : m_Name(std::string("Unknown"))
 {
@@ -726,7 +726,7 @@ Now you can see the difference between them. The second code will need to create
 
 Let's look this code:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 // MyClass.h
 #pragma once
 #include <string>
@@ -786,7 +786,7 @@ int main()
 
 If we don't want the compiler to do the implict conversion in this case, we can put the keyword ```explict``` at the begin of consturctors just like this:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 // MyClass.h
 #pragma once
 #include <string>
@@ -809,7 +809,7 @@ public:
 
 First you can treat ```this``` as a constant pointer. Look the follwing code:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 ...
 Entity* e = this; //legal
 Entity* const e = this; // legal
@@ -826,7 +826,7 @@ First of all, small pointer helps you to manage memory allocated on heap(```new`
 
 There are three kinds of smart pointer in C++ which are ```unique_ptr```, ```shared_ptr```, ```weak_ptr```. Let's see how to use them and what's the difference among these three.
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 #include <memory>
 #include <iostream>
 #include <string>
@@ -875,7 +875,7 @@ Two things you need to know of this topic:
 
 Here is a shocking example of how to use the arrow operator to get the member offset of a struct. Trust me, this is amazing.
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 #include <iostream>
 
 struct Vector3 {
@@ -900,7 +900,7 @@ Let's breakdown how this code work.
 
 First, The ```->``` operator is syntactic sugar for dereferencing a pointer and accessing a member. These two expression are equivalent:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 ptr->member
 (*ptr).member
 ```
@@ -913,7 +913,7 @@ Second, let's see what ```int offsetX = (int)&(((Vector3*)nullptr)->x);``` step 
 
 Why there is no crashing in this code? Well, because no memory accessing happens in this code. When you do ```ptr->member```, the compiler calculates the the address as:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 address_of_member = base_pointer + offset_of_member
 ```
 
@@ -923,7 +923,7 @@ And following ```((Vector3*) nullptr)->x```, operator ```&``` prevents the deref
 
 The standard approach of this kind of behavior is to use ```offsetof```, here is an example:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 #include <cstddef>
 
 int offsetX = offsetof(Vector3, x);
@@ -939,7 +939,7 @@ This is about an example of how to avoid copying and reallocating memory when we
 
 Take a look at this code:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 struct Vertex {
 	float x, y, z;
 	Vertex(const float& x, const float& y, const float& z)
@@ -979,7 +979,7 @@ Runing this code, you will see that it prints "Copied!" six times!!! It means th
 
 So why six times? Here is the thing:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 std::vector<Vertex> vertices; // construct a verctor with size 0
 vertices.push_back(Vertex(1,2,3)); // extend vertices to size 1 (memory reallocating) and create an object of Vertex(1,2,3) and copy it to vertices, 1 time coping.
 vertices.push_back(Vertex(4,5,6)); // extend vertices to size 2(double the size usually, memory reallocating), copy Vertex(1,2,3) which exist in the former memory, and create Vertex(4,5,6) and copy it to vertices, 3 times coping so far.
@@ -988,7 +988,7 @@ vertices.push_back(Vertex(7,8,9)); // same as vertices.push_back(Vertex(4,5,6)),
 
 Let's change this code like this:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 int main()
 {
 	std::vector<Vertex> vertices;
@@ -1026,7 +1026,7 @@ Thirdly, Config "Additional Include Directories" and "Additional Library Directo
 
 Now, use them as other external libraries as the same.
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 #include <iostream>
 #include <GLFW/glfw3.h>
 
@@ -1090,7 +1090,7 @@ Secondly, set configuration type of 'Engine' as 'Static Library(.lib)' by right 
 
 Thirdly, add functions/classes, whatever you want in Project Engine. In this case, we add a simple function ```PrintMessage```:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 // Engine.h
 #pragma once
 
@@ -1126,7 +1126,7 @@ Lastly, **right clicking ```Game``` -> ```Add``` -> ```Reference``` -> choose ``
 
 Examples:
 
-```C++{.line-numbers}
+```C++ {.line-numbers}
 template <typename T>
 void Print(T value)
 {
@@ -1158,4 +1158,468 @@ int main()
 }
 ```
 
-Cherno suggests that we should not go to far with templates (don't make them too complicated), but, teamplates can also make your work eaiser.
+Cherno suggests that we should not go too far with templates (don't make them too complicated), but, teamplates can also make your work eaiser.
+
+## Stack vs Heap Memory In C++
+
+Storing in heap means the system need to do memory allocation.
+
+But when it comes to stack, storing in stack just need to move the stack pointer with one cpu instruction.
+
+This is the biggest reason why using stack is way more faster than using heap.
+
+The operation system maintains a "free list" that list all accessible memory block, when an app ask for a block of memory, the operation system will check the "free list" to find a free block of memory. 
+
+## The "auto" Keyword in C++
+
+One thing to remember: What situation you should use this keyword?
+
+The answer is : when the type is too long/complicated to type.
+
+For example:
+
+```C++ {.line-numbers}
+#include <string>
+#include <vector>
+
+int main()
+{
+	std::vector<std::string> names;
+
+	for(std::vector<std::string>::iterator it = names.begin(); it < names.end(); it++)
+    {
+        std::cout << *it << std::endl;
+    }
+    
+    for(auto it = names.begin(); it != names.end(); it++)
+    {
+        std::cout << *it << std::endl;
+    }
+
+    
+    return 0;
+}
+```
+
+## Function Pointer & Lambda Expression
+
+About function pointer, remembering how to use it is enough for me.
+
+```C++ {.line-numbers}
+#include <iostream>
+#include <string>
+
+typedef void(*FUNCTION_DEF)(const std::string&)
+
+void PrintSignature(const std::string& signature)
+{
+    std::cout << signature << std::endl;
+}
+
+int main()
+{
+	FUNCTION_DEF func = PrintSignature;
+    void(*functionPointer)(const std::string&) = PrintSignature;
+
+	// Don't forget to use auto!
+	auto functionPointerAuto = PrintSignature;
+
+	func(std::string("XIE"));
+	functionPointer(std::string("Jason"));
+	functionPointerAuto(std::string("Xiaoming"));
+
+	return 0;
+}
+```
+
+Quite easy!
+
+Now, let's see how to use lambda expression.
+
+```C++ {.line-numbers}
+#include <iostream>
+#include <functional>
+#include <string>
+
+void PrintInt(const int& value, const std::string& signature, std::function<void(const std::string&)> printSignature)
+{
+	std::cout << "Value: " << value << std::endl;
+	printSignature(signature);
+}
+
+int main()
+{
+	int value = 7;
+	std::string signature{"Jason"};
+
+	auto printSignature = [](const std::string& signature){ std::cout << signature << std::endl; };
+
+	PrintInt(value, signature, printSignature);
+}
+```
+
+If you want to access entites outside the body of the lambda expression, add them to the square brackets. For example:
+
+```C++ {.line-numbers}
+	// Access all entites;
+	auto printSignature = [=](const std::string& signature){ std::cout << signature << value << std::endl; };
+
+	// Access by value. Can not change inside the body without "mutable" keyword
+	auto printSignature = [value](const std::string& signature){ std::cout << signature << value << std::endl; };
+
+	// auto printSignature = [value](const std::string& signature){ std::cout << signature << value << std::endl; value = 7 }; // error can not change by passing value
+
+	uto printSignature = [value](const std::string& signature) mutable { std::cout << signature << value << std::endl; value = 7 }; // no errors
+
+	// Access by reference. Can change inside the body.
+	auto printSignature = [&value](const std::string& signature){ std::cout << signature << value << std::endl; value = 17; };
+```
+
+Lambda expression can be converted to function pointer **when captured entities list is empty**.
+
+```C++ {.line-numbers}
+	void(*functionPointer)(const std::string&) = [](const std::string& signature){ std::cout << signature << std::endl; };
+
+	void(*functionPointer)(const std::string&) = [&value](const std::string& signature){ std::cout << signature << std::endl; }; 
+	// error! No viable conversion from '(lambda at /Users/xiexiaoming/Documents/C++ Series/HelloWorld/HelloWorld/Source/main.cpp:27:50)' to 'void (*)(const std::string &)' (aka 'void (*)(const basic_string<char> &)')
+```
+
+Use std::function instead of function pointer in this case.
+
+```C++ {.line-numbers}
+	std::function<void(const std::string&)> function = [&value](const std::string& signature){ std::cout << signature << std::endl; }; // no errors.
+```
+
+## Namespace in C++
+
+What is an "inline namespace" ?
+
+```C++ {.line-numbers}
+#include <iostream>
+#include <string>
+
+namespace ns1 {
+inline namespace ns2 {
+	void PrintSomething(const std::string& str)
+	{
+		std::cout << str << std::endl;
+	}
+}
+	// Can not define another PrintSomething here,
+	// becasue confict with ns2::PrintSomething
+	// void PrintSomething(const std::string& str)
+	// {
+	// 	std::cout << str << std::endl;
+	// }
+}
+
+int main()
+{
+	std::string name{"Jason"};
+
+	// call PrintSomething by:
+	ns1::ns2::PrintSomething(name);
+	// or
+	ns1::PrintSomething(name); // "inline" makes PrintSomething declared and defined within ns1.
+}
+```
+
+An important usage of "inline namespace" is versioning(version control). For example:
+
+```C++ {.line-numbers}
+#include <iostream>
+#include <string>
+
+namespace ns1 {
+inline namespace ns2 {
+	// new implementation of PrintSomething
+	void PrintSomething(const std::string& str)
+	{
+		std::cout << "New version of PrintSomething." << std::endl;
+		std::cout << str << std::endl;
+	}
+}
+namespace ns3 {
+	// ex implementation of PrintSomething
+	void PrintSomething(const std::string& str)
+	{
+		std::cout << str << std::endl;
+	}
+}
+}
+
+int main()
+{
+	std::string name{"Jason"};
+
+	ns1::PrintSomething(name); // call the new version automatically
+	ns1::ns3::PrintSomething(name); // call the ex-version 
+}
+```
+
+Usage examples of namespace:
+
+```C++ {.line-numbers}
+#include <iostream>
+#include <thread>
+
+namespace ns1{
+namespace ns2{
+void PrintString(const std::string& str);
+}
+void ns1::ns2::PrintString(const std::string &str)
+{
+    std::cout << str << std::endl;
+}
+
+void PrintInteger(const int& value);
+}
+
+void ns1::PrintInteger(const int& value)
+{
+    std::cout << value << std::endl;
+}
+
+// Usage of inline namespace.
+// Extend exsited namespace.
+namespace ns1::inline ns1_inline_1{ // Extension of namespace ns1
+    const int MAX_COUNT = 1;
+}
+
+namespace ns1{
+inline namespace ns1_inline_2{
+const std::string NAMESPACE_NAME{"NS1"};
+}
+}
+
+// Illegal. namespace ns1 isn't inline namespace originally.
+//inline namespace ns1{
+//
+//}
+
+
+namespace namespace_1 = ns1; // alias
+// ns1::PrintString;
+// same as
+// namespace_1::PringtString;
+
+namespace {
+void PrintPi()
+{
+    std::cout << 3.14 << std::endl;
+}
+}
+
+// namespace without identifier is the same as "static"(visible in this translate unit)
+// static PrintPi()
+//{
+//  std::cout << 3.14 << std::endl;
+//}
+
+int main()
+{
+    PrintPi();
+
+}
+```
+
+## Timing in C++
+
+You can use standard library ```chrono``` for timing in C++. This library is platform-indepandent. Here is an example:
+
+```C++ {.line-numbers}
+#include <iostream>
+#include <chrono>
+#include <string>
+#include <thread>
+
+struct Timer{
+    std::chrono::duration<float> time;
+    std::chrono::steady_clock::time_point start;
+    
+    Timer(){
+        start = std::chrono::high_resolution_clock::now();
+    }
+    
+    ~Timer(){
+        std::chrono::steady_clock::time_point end = std::chrono::high_resolution_clock::now();
+        time = end - start;
+        
+        std::cout << "Timer takes time: " << time.count() * 1000 << " ms.";
+    }
+};
+
+void PrintStringWithSpecifiedTimes(const std::string& str, const int& times)
+{
+    Timer timer;
+    for(int count = 0; count < times; count++)
+        std::cout << str << std::endl;
+}
+
+int main()
+{
+    using namespace std::chrono_literals;
+    auto start = std::chrono::high_resolution_clock::now();
+    std::this_thread::sleep_for(1s);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> time = end - start;
+    std::cout << "Sleep for: " << time.count() << " secs." << std::endl;
+//    PrintStringWithSpecifiedTimes("Working...", 700);
+//    using namespace std::string_literals;
+//    auto start = std::chrono::high_resolution_clock::now();
+//    PrintStringWithSpecifiedTimes("Working..."s, 100);
+//    auto end = std::chrono::high_resolution_clock::now();
+//
+//    std::chrono::duration<float> time = end - start;
+    
+//    std::cout << "Printing 'Working...' for 100 times takes " << time.count() << " seconds to finish." << std::endl;
+    
+    return 0;
+}
+
+```
+
+## Multiple Diamension Array
+
+To avoid frequently "cache miss", you should use normal one diamension arrya instead of multiple diamension array.
+
+The reason why "cache miss" is more frequent in 2d array is that 2d array's memory block is not continuous.
+
+The intersting thing is, in debug mode, 'fake 2d array' is not always faster than 'real 2d array'. But, in release mode, 'fake 2d array' is always way more faster than 'real 2d array'.
+
+Here is the test code:
+
+```C++ {.line-numbers}
+//
+//  multi_dimensions_array.cpp
+//  HelloWorld
+//
+//  Created by 谢晓明 on 2025/10/4.
+//
+
+#include <iostream>
+#include <string>
+#include <chrono>
+
+static int ROW_NMBER = 10000;
+static int COL_NUMBER = 10000;
+static int TEST_COUNT = 70;
+
+struct sTimer{
+    bool bStopSign = false;
+    std::string mTimerName;
+    std::chrono::duration<float> time;
+    std::chrono::steady_clock::time_point start;
+    
+    sTimer(const std::string& name):mTimerName(name){
+        start = std::chrono::high_resolution_clock::now();
+    }
+    
+    void Stop(){
+        std::chrono::steady_clock::time_point end = std::chrono::high_resolution_clock::now();
+        time = end - start;
+        
+        bStopSign = true;
+    }
+    
+    ~sTimer(){
+        if(bStopSign)
+            return;
+        
+        std::chrono::steady_clock::time_point end = std::chrono::high_resolution_clock::now();
+        time = end - start;
+        
+        std::cout << mTimerName << " takes " << time.count() * 1000 << " ms.\n";
+    }
+};
+
+
+int main()
+{
+    int** array2d = new int*[ROW_NMBER];
+    for(int row = 0; row < ROW_NMBER; row++)
+        array2d[row] = new int[COL_NUMBER];
+    
+    // real 2d array
+    {
+        float totalTime = 0.0f;
+        
+        for(int count = 0; count < TEST_COUNT; count++)
+        {
+            sTimer timer1(std::string{"Method1"});
+            for(int row = 0; row < ROW_NMBER; row++)
+                for(int col = 0; col < COL_NUMBER; col++)
+                    array2d[row][col] = 7;
+            
+            timer1.Stop();
+            totalTime += timer1.time.count() * 1000;
+        }
+        
+        std::cout << "Method 1 takes " << totalTime / TEST_COUNT << " ms.\n";
+        
+    }
+    
+    // fake 2d array
+    int* array1d = new int[ROW_NMBER * COL_NUMBER];
+    {
+        float totalTime = 0.0f;
+        
+        for(int count = 0; count < TEST_COUNT; count++)
+        {
+            sTimer timer2(std::string{"Method2"});
+            for(int row = 0; row < ROW_NMBER; row++)
+            {
+                int rowOffset = row * ROW_NMBER;
+                for(int col = 0; col < COL_NUMBER; col++)
+                    array1d[col + rowOffset] = 7;
+            }
+            
+            timer2.Stop();
+            totalTime += timer2.time.count() * 1000;
+        }
+        
+        std::cout << "Method 2 takes " << totalTime / TEST_COUNT << " ms.\n";
+    }
+    
+    // fake 2d array in 1d way
+    {
+        float totalTime = 0.0f;
+        
+        for(int count = 0; count < TEST_COUNT; count++)
+        {
+            sTimer timer2(std::string{"Method2"});
+            for(int i = 0; i < ROW_NMBER * COL_NUMBER; i++)
+                array1d[i] = 17;
+            
+            timer2.Stop();
+            totalTime += timer2.time.count() * 1000;
+        }
+        
+        std::cout << "Method 3 takes " << totalTime / TEST_COUNT << " ms.\n";
+    }
+    
+    for(int row = 0; row < ROW_NMBER; row++)
+        delete [] array2d[row];
+    
+    delete [] array2d;
+    delete [] array1d;
+
+    return 0;
+}
+```
+
+Running enviroment:
+
+**IDE: XCode**
+
+**OS: macOS Tahoe**
+
+**CPU: M3 Pro**
+
+Running result in **debug** mode:
+
+![debug mode](image-18.png)
+
+Running result in **release** mode:
+
+![release mode](2b0ac5f3ae5447681a73b938e48ceae8.png)
