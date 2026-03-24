@@ -474,7 +474,7 @@ Types of char and their size:
 |Type|Size|
 |----|----|
 |char|1 bytes|
-|wchar_t|1/2/4 bytes, depend on your operating system, usually 2 or 4 bytes, exp. 2 bytes in windows, 4 bytes in linux and macOS|
+|wchar_t|1 or 2 or 4 bytes, depend on your operating system, usually 2 or 4 bytes, exp. 2 bytes in windows, 4 bytes in linux and macOS|
 |char16_t|2 bytes|
 |char32_t|4 bytes|
 
@@ -1623,3 +1623,166 @@ Running result in **debug** mode:
 Running result in **release** mode:
 
 ![release mode](2b0ac5f3ae5447681a73b938e48ceae8.png)
+
+## Precompile Header File In C++
+
+So, What is "percompiled header File" in C++, what does it use for?
+
+Remember what ```#include``` does we talked about at the begining of the Q&A? Yeah, copy and paste.
+
+For example, look at this simple cpp file.
+
+```C++ {.line-numbers}
+// main.cpp
+#incldue <iostream>
+#incldue <vector>
+
+int main()
+{
+    std::cout << "Hell World!" << std::endl;
+}
+```
+
+Eveytime, when we recomplie this cpp file, all code in ```iostream.h``` and ```vector.h``` will be copied and pasted into main.cpp, then compile.
+
+This will make main.cpp become a large file and slow down the compiling speed a lot.
+
+The things is that, we never change ```iostream.h``` and ```vector.h```(they are from c++ std library.). So we don't want to process content of these two header file everytime we recompile our ```main.cpp```. This is what **precompiled header file** use for.
+
+Here are steps of how to use **precompiled header file** in Visual Studio 2022
+
+- Put all header files into a .h file, for example:
+
+```C++ {.line-numbers}
+//pch.h
+#pragama once
+#include <iostream>
+#include <string>
+#include <chrono>
+```
+
+- Create a ```pch.cpp``` file and include ```pch.h```
+
+```C++ {line-numbers}
+//pch.cpp
+#include "pch.h"
+```
+
+- right click ```pch.cpp``` -> **Properties** -> **C/C++** -> **Precompile Headers** -> **Precompile Header "Create"** -> **Confirm**
+  
+- right click ```.cpp``` file(s) you want to use precompile header or you can choose your entire project -> Properties -> C/C++ -> Precompile Headers -> Precompile Header "Use" -> Confirm
+
+Attention pls! When you choose to use precompile headers for your whole project. **Make sure every cpp file in your project include, for example in this project, ```pch.h``` in the first line!!!, otherwise you will get a compile error: "unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?"**
+
+More information about precompile header file in VS 2022, pls see: <https://gemini.google.com/share/4cfe31199c5d>
+
+## Dynamic Cast in C++
+
+dynamic cast is a way for casting type in C++ with verifing. Let's jump into an example directly.
+
+```C++ {.line-numbers}
+//MyClass.h
+#pragma once
+#include <string>
+
+
+class Entity
+{
+private:
+    std::string m_Name;
+    std::string m_UID;
+    int m_Age;
+public:
+    Entity();
+    Entity(const std::string& name, const std::string& uid, const int& age);
+    Entity(const Entity& entity);
+    ~Entity();
+
+    virtual void implentedBySubClass() {};
+
+    bool SameEntity(const Entity& other) const;
+
+    const std::string& GetEntityName();
+};
+
+class Player : public Entity
+{
+};
+
+class Enemy : public Entity
+{
+};
+
+//Main.cpp
+int main()
+{
+    Entity* player = new Player();
+    Player* p0 = dynamic_cast<Player*>(player);
+    Enemy* p1 = dynamic_cast<Enemy*>(player);
+
+    if (p0 == nullptr)
+        std::cout << "Dynamic cast from entity (player actually) to player failed." << std::endl;
+    else
+        std::cout << "Dynamic cast from entity (player actually) to player successfully" << std::endl;
+
+    if (p1 == nullptr)
+        std::cout << "Dynamic cast from entity (player actually) to enemy failed" << std::endl;
+    else
+        std::cout << "Dynamic cast from entity (player actually) to enemy successfully" << std::endl;
+
+    return 0;
+}
+```
+
+The output of this example will be:
+
+```Bash
+Dynamic cast from entity (player actually) to player successfully
+Dynamic cast from entity (player actually) to enemy failed
+```
+
+Two points you should notice are:
+
+- dynamic cast is relying on RTTI(Runtime Type Information), make sure enable RTTI in your visual studio project configration. And RTTI actually does cost performance loss.
+
+![alt text](image-19.png)
+
+- Considering performance, C++ compiler only generates RTTI for "Polymorphic classes", which conatins at least one virtual function. See <https://gemini.google.com/share/acdd41203598>
+
+## std::optional & std::variant in C++17
+
+std::optional can has value and has no value.
+
+std::variant is some kind of an union, but it's more convient.
+
+```C++ {.line-numbers}
+// main.cpp
+int main()
+{
+    // std::variant example
+    std::variant<std::string, int> resultVariant;
+
+    resultVariant = "Yes!";
+    std::string* valueString = std::get_if<std::string>(&resultVariant);
+    if (valueString != nullptr)
+        std::cout << *valueString << std::endl;
+
+    resultVariant = 7;
+    int* valueInteger = std::get_if<int>(&resultVariant);
+    if (valueInteger != nullptr)
+        std::cout << *valueInteger << std::endl;
+
+    // std::optional example
+    std::optional<std::string> resultOptional;
+    if (resultOptional.has_value())
+        std::cout << resultOptional.value() << std::endl;
+    else
+        std::cout << "Empty optional obj." << std::endl;
+
+    resultOptional = "Yes!";
+    if (resultOptional.has_value())
+        std::cout << resultOptional.value() << std::endl;
+    else
+        std::cout << "Empty optional obj." << std::endl;
+}
+```
