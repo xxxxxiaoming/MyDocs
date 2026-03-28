@@ -1166,7 +1166,7 @@ Storing in heap means the system need to do memory allocation.
 
 But when it comes to stack, storing in stack just need to move the stack pointer with one cpu instruction.
 
-This is the biggest reason why using stack is way more faster than using heap.
+This is the biggest reason why using stack is much faster than using heap.
 
 The operation system maintains a "free list" that list all accessible memory block, when an app ask for a block of memory, the operation system will check the "free list" to find a free block of memory. 
 
@@ -1786,3 +1786,109 @@ int main()
         std::cout << "Empty optional obj." << std::endl;
 }
 ```
+
+## Usage of std::async and multi-thread in C++
+
+An example for usage:
+
+```C++ {.line-numbers}
+// main.cpp
+int main()
+{
+    std::vector<std::future<int>> futures;
+    {
+        auto lambda = [](int x) {return x * 7; };
+        for (int count = 1; count < 1000; count++)
+            futures.push_back(std::async(std::launch::async, lambda, count));
+    }
+
+    {
+        Timer timer{"Async timer"};
+        while (true)
+        {
+            bool bAllThreadsReady = true;
+            for (auto& future : futures)
+            {
+                if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+                {
+
+                }
+                else
+                    bAllThreadsReady = false;
+            }
+
+            if (bAllThreadsReady)
+                break;
+        }
+    }
+
+    return 0;
+}
+```
+
+Questions you may have about ```std::aync```, see <https://gemini.google.com/share/1bd9cfa7e0c1>.
+
+## Handle string faster
+
+As we know, in the old C++ standard, ```std::string``` call ```operator new``` to allocate on-heap memory which may cause performace issue when creating a lot of ```std::string``` objects for string. If you want to avoid this issue, you may use raw char pointer.
+
+However, in the new C++ standard, ```std::string``` would not call ```operator new``` to allocate on-heap memory for small strings. The define of "small" string lays in:
+
+![alt text](image-20.png)
+
+```_Small_string_capacity = _BUF_SIZE -1;```, which equals to 16 bytes for type ```char```.
+
+So, if you are sure about that your strings are all shorter than 16 bytes. You can just use ```std::string``` without worring about performance issue causing by memory allcoating.
+
+Another thing is about how to get sub string faster. Using ```std::string_view``` instead of using "std::string::substr", here is an example:
+
+```C++ {.line-numbers}
+const char* str = "Jason Xiaoming XIE";
+std::string strObj{ "Jason Xiaoming XIE" };
+std::string_view firstName{ str, 5 };       // faster, no memory allocating
+std::string_view lastName{ str + 6, 3 };    // faster, no memory allocating
+
+std::string middleName{strObj.substr(5, 9)}; // slower, exist memory allocating
+
+std::cout << "First Name: " << firstName << "\n";
+std::cout << "Last Name: " << lastName << "\n";
+std::cout << "Middle Name: " << middleName << "\n";
+```
+
+Other words, if you just want to read a string and you don't want to modify it, using ```std::string_view``` would be your best choice in C++17.
+
+## Left values and right values
+
+Remember lvalues are basically variables that some kind of storage backing them, rvalues are temporay values.
+
+lvalue references can only take lvalues unless they are const. And rvalues can only take temporary rvalues.
+
+```C++ {.line-numbers}
+void PrintName(std::string& name)
+{
+	std::cout << "[lvalue version.] " << name << "\n";
+}
+
+void PrintName(std::string&& name)
+{
+	std::cout << "[rvalues version.]" << name << "\n";
+}
+
+int main()
+{
+    std::string name{ "Jason" };
+
+	PrintName(name);    // call lvalue version
+	PrintName("Jason"); // call rvalue version
+
+	return 0;
+}
+```
+
+Discussions about rvalue references, see <https://gemini.google.com/share/ed0afae7bcca>.
+
+## Argument Evaluation Order in C++
+
+In short, argument evalutaion in **undefined behavior** in C++.
+
+It means that arguments may be evaluated from left to right, also may be evaluated right to left. **It depends on compiler's implementation.**
