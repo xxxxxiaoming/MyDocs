@@ -474,7 +474,7 @@ Types of char and their size:
 |Type|Size|
 |----|----|
 |char|1 bytes|
-|wchar_t|1/2/4 bytes, depend on your operating system, usually 2 or 4 bytes, exp. 2 bytes in windows, 4 bytes in linux and macOS|
+|wchar_t|1 or 2 or 4 bytes, depend on your operating system, usually 2 or 4 bytes, exp. 2 bytes in windows, 4 bytes in linux and macOS|
 |char16_t|2 bytes|
 |char32_t|4 bytes|
 
@@ -1166,7 +1166,7 @@ Storing in heap means the system need to do memory allocation.
 
 But when it comes to stack, storing in stack just need to move the stack pointer with one cpu instruction.
 
-This is the biggest reason why using stack is way more faster than using heap.
+This is the biggest reason why using stack is much faster than using heap.
 
 The operation system maintains a "free list" that list all accessible memory block, when an app ask for a block of memory, the operation system will check the "free list" to find a free block of memory. 
 
@@ -1623,3 +1623,272 @@ Running result in **debug** mode:
 Running result in **release** mode:
 
 ![release mode](2b0ac5f3ae5447681a73b938e48ceae8.png)
+
+## Precompile Header File In C++
+
+So, What is "percompiled header File" in C++, what does it use for?
+
+Remember what ```#include``` does we talked about at the begining of the Q&A? Yeah, copy and paste.
+
+For example, look at this simple cpp file.
+
+```C++ {.line-numbers}
+// main.cpp
+#incldue <iostream>
+#incldue <vector>
+
+int main()
+{
+    std::cout << "Hell World!" << std::endl;
+}
+```
+
+Eveytime, when we recomplie this cpp file, all code in ```iostream.h``` and ```vector.h``` will be copied and pasted into main.cpp, then compile.
+
+This will make main.cpp become a large file and slow down the compiling speed a lot.
+
+The things is that, we never change ```iostream.h``` and ```vector.h```(they are from c++ std library.). So we don't want to process content of these two header file everytime we recompile our ```main.cpp```. This is what **precompiled header file** use for.
+
+Here are steps of how to use **precompiled header file** in Visual Studio 2022
+
+- Put all header files into a .h file, for example:
+
+```C++ {.line-numbers}
+//pch.h
+#pragama once
+#include <iostream>
+#include <string>
+#include <chrono>
+```
+
+- Create a ```pch.cpp``` file and include ```pch.h```
+
+```C++ {line-numbers}
+//pch.cpp
+#include "pch.h"
+```
+
+- right click ```pch.cpp``` -> **Properties** -> **C/C++** -> **Precompile Headers** -> **Precompile Header "Create"** -> **Confirm**
+  
+- right click ```.cpp``` file(s) you want to use precompile header or you can choose your entire project -> Properties -> C/C++ -> Precompile Headers -> Precompile Header "Use" -> Confirm
+
+Attention pls! When you choose to use precompile headers for your whole project. **Make sure every cpp file in your project include, for example in this project, ```pch.h``` in the first line!!!, otherwise you will get a compile error: "unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?"**
+
+More information about precompile header file in VS 2022, pls see: <https://gemini.google.com/share/4cfe31199c5d>
+
+## Dynamic Cast in C++
+
+dynamic cast is a way for casting type in C++ with verifing. Let's jump into an example directly.
+
+```C++ {.line-numbers}
+//MyClass.h
+#pragma once
+#include <string>
+
+
+class Entity
+{
+private:
+    std::string m_Name;
+    std::string m_UID;
+    int m_Age;
+public:
+    Entity();
+    Entity(const std::string& name, const std::string& uid, const int& age);
+    Entity(const Entity& entity);
+    ~Entity();
+
+    virtual void implentedBySubClass() {};
+
+    bool SameEntity(const Entity& other) const;
+
+    const std::string& GetEntityName();
+};
+
+class Player : public Entity
+{
+};
+
+class Enemy : public Entity
+{
+};
+
+//Main.cpp
+int main()
+{
+    Entity* player = new Player();
+    Player* p0 = dynamic_cast<Player*>(player);
+    Enemy* p1 = dynamic_cast<Enemy*>(player);
+
+    if (p0 == nullptr)
+        std::cout << "Dynamic cast from entity (player actually) to player failed." << std::endl;
+    else
+        std::cout << "Dynamic cast from entity (player actually) to player successfully" << std::endl;
+
+    if (p1 == nullptr)
+        std::cout << "Dynamic cast from entity (player actually) to enemy failed" << std::endl;
+    else
+        std::cout << "Dynamic cast from entity (player actually) to enemy successfully" << std::endl;
+
+    return 0;
+}
+```
+
+The output of this example will be:
+
+```Bash
+Dynamic cast from entity (player actually) to player successfully
+Dynamic cast from entity (player actually) to enemy failed
+```
+
+Two points you should notice are:
+
+- dynamic cast is relying on RTTI(Runtime Type Information), make sure enable RTTI in your visual studio project configration. And RTTI actually does cost performance loss.
+
+![alt text](image-19.png)
+
+- Considering performance, C++ compiler only generates RTTI for "Polymorphic classes", which conatins at least one virtual function. See <https://gemini.google.com/share/acdd41203598>
+
+## std::optional & std::variant in C++17
+
+std::optional can has value and has no value.
+
+std::variant is some kind of an union, but it's more convient.
+
+```C++ {.line-numbers}
+// main.cpp
+int main()
+{
+    // std::variant example
+    std::variant<std::string, int> resultVariant;
+
+    resultVariant = "Yes!";
+    std::string* valueString = std::get_if<std::string>(&resultVariant);
+    if (valueString != nullptr)
+        std::cout << *valueString << std::endl;
+
+    resultVariant = 7;
+    int* valueInteger = std::get_if<int>(&resultVariant);
+    if (valueInteger != nullptr)
+        std::cout << *valueInteger << std::endl;
+
+    // std::optional example
+    std::optional<std::string> resultOptional;
+    if (resultOptional.has_value())
+        std::cout << resultOptional.value() << std::endl;
+    else
+        std::cout << "Empty optional obj." << std::endl;
+
+    resultOptional = "Yes!";
+    if (resultOptional.has_value())
+        std::cout << resultOptional.value() << std::endl;
+    else
+        std::cout << "Empty optional obj." << std::endl;
+}
+```
+
+## Usage of std::async and multi-thread in C++
+
+An example for usage:
+
+```C++ {.line-numbers}
+// main.cpp
+int main()
+{
+    std::vector<std::future<int>> futures;
+    {
+        auto lambda = [](int x) {return x * 7; };
+        for (int count = 1; count < 1000; count++)
+            futures.push_back(std::async(std::launch::async, lambda, count));
+    }
+
+    {
+        Timer timer{"Async timer"};
+        while (true)
+        {
+            bool bAllThreadsReady = true;
+            for (auto& future : futures)
+            {
+                if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+                {
+
+                }
+                else
+                    bAllThreadsReady = false;
+            }
+
+            if (bAllThreadsReady)
+                break;
+        }
+    }
+
+    return 0;
+}
+```
+
+Questions you may have about ```std::aync```, see <https://gemini.google.com/share/1bd9cfa7e0c1>.
+
+## Handle string faster
+
+As we know, in the old C++ standard, ```std::string``` call ```operator new``` to allocate on-heap memory which may cause performace issue when creating a lot of ```std::string``` objects for string. If you want to avoid this issue, you may use raw char pointer.
+
+However, in the new C++ standard, ```std::string``` would not call ```operator new``` to allocate on-heap memory for small strings. The define of "small" string lays in:
+
+![alt text](image-20.png)
+
+```_Small_string_capacity = _BUF_SIZE -1;```, which equals to 16 bytes for type ```char```.
+
+So, if you are sure about that your strings are all shorter than 16 bytes. You can just use ```std::string``` without worring about performance issue causing by memory allcoating.
+
+Another thing is about how to get sub string faster. Using ```std::string_view``` instead of using "std::string::substr", here is an example:
+
+```C++ {.line-numbers}
+const char* str = "Jason Xiaoming XIE";
+std::string strObj{ "Jason Xiaoming XIE" };
+std::string_view firstName{ str, 5 };       // faster, no memory allocating
+std::string_view lastName{ str + 6, 3 };    // faster, no memory allocating
+
+std::string middleName{strObj.substr(5, 9)}; // slower, exist memory allocating
+
+std::cout << "First Name: " << firstName << "\n";
+std::cout << "Last Name: " << lastName << "\n";
+std::cout << "Middle Name: " << middleName << "\n";
+```
+
+Other words, if you just want to read a string and you don't want to modify it, using ```std::string_view``` would be your best choice in C++17.
+
+## Left values and right values
+
+Remember lvalues are basically variables that some kind of storage backing them, rvalues are temporay values.
+
+lvalue references can only take lvalues unless they are const. And rvalues can only take temporary rvalues.
+
+```C++ {.line-numbers}
+void PrintName(std::string& name)
+{
+	std::cout << "[lvalue version.] " << name << "\n";
+}
+
+void PrintName(std::string&& name)
+{
+	std::cout << "[rvalues version.]" << name << "\n";
+}
+
+int main()
+{
+    std::string name{ "Jason" };
+
+	PrintName(name);    // call lvalue version
+	PrintName("Jason"); // call rvalue version
+
+	return 0;
+}
+```
+
+Discussions about rvalue references, see <https://gemini.google.com/share/ed0afae7bcca>.
+
+## Argument Evaluation Order in C++
+
+In short, argument evalutaion in **undefined behavior** in C++.
+
+It means that arguments may be evaluated from left to right, also may be evaluated right to left. **It depends on compiler's implementation.**
