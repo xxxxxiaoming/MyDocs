@@ -270,7 +270,7 @@ Anyway, "static" can be treated like "private" of class and struct. Just remembe
 
 3. **Static functions can not access non-static member variables.**
 
-## The Use Of Vitual Function
+## The Use Of Virtual Function
 
 ### Normal Virtual Functions
 
@@ -389,14 +389,14 @@ There two ways for you to declare an array in C++. For example:
 
 ```C++ {.link-numbers}
 int ArrayOfSize7[7];
-int* AnotherArrayOfSize7[7] = new int[7];
+int* AnotherArrayOfSize7 = new int[7];
 ```
 
 The differcens between them is which area they are created in memory.
 
 ```C++ {.link-numbers}
 int ArrayOfSize7[7]; // created in stack
-int* AnotherArrayOfSize7[7] = new int[7]; // create in heap
+int* AnotherArrayOfSize7 = new int[7]; // create in heap
 ```
 
 Created in stack means you don't nedd to delete it yourself, because the scope of the life time of the array created in stack ends with the scope.
@@ -432,7 +432,7 @@ However, when the function exits, the local array goes out of scope and is destr
 
 When ```main()``` tries to access ```ArrayPointer[0]```, it's attempting to read from memory that may have been deallocated or reused for other purposes. This is **undefined behavior** - the program might appear to work sometimes, crash other times, or produce garbage values. Use heap array instead of stack array.
 
-Always be careful with a function that return a local pointer.
+**Always be careful with a function that return a local pointer.**
 
 By the way, there are no (normal) ways for you to get the number of elements of an array. But you can do with some tricks(not recommended). For example:
 
@@ -460,7 +460,7 @@ You want convinence and safety? Then choose array from the standard library and 
 
 ## String Literals In C++
 
-First of all, remember that the type of string literals are ```const char[]```. You can't assign an string literal to a variable of type ```const char*``` after may be C++11. For example:
+First of all, remember that the type of string literals are ```const char[]```. You can't assign an string literal to a variable of type ```char*``` after may be C++11. For example:
 
 ```C++ {.line-numbers}
 char* name = "Jason"; // baned, compiling error
@@ -560,7 +560,7 @@ Entity::Entity(int x, int y)
 int main()
 {
 	const Entity e;
-	cout << e.GetterX << endl; // error.Cannot convert this argument from type const Entity to type Entity: function is missing const qualifier
+	cout << e.GetterX() << endl; // error.Cannot convert this argument from type const Entity to type Entity: function is missing const qualifier
 }
 ```
 
@@ -784,6 +784,8 @@ int main()
 }
 ```
 
+In this example, although we call the constructor function ```Entity::Entity(const std::string& name)``` to construct ```e1``, but type conversion does happen here, in other words, calling the constructor function is just a tool of type conversion!!!
+
 If we don't want the compiler to do the implict conversion in this case, we can put the keyword ```explict``` at the begin of consturctors just like this:
 
 ```C++ {.line-numbers}
@@ -818,7 +820,7 @@ Entity*& const = this; // illegal!!! same as line 4
 Entity* const& e = this; //legal
 ```
 
-```const``` is totally unnecessary for an refrence!!! ```int& const``` is same as ```int&```
+```const``` is totally unnecessary for an reference!!! ```int& const``` is same as ```int&```
 
 ## How To Use Smart Pointers
 
