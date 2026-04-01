@@ -824,7 +824,7 @@ Entity* const& e = this; //legal
 
 ## How To Use Smart Pointers
 
-First of all, small pointer helps you to manage memory allocated on heap(```new``` and ```delete```). Smart pointer frees you from ```delete``` memory manually.
+First of all, smart pointer helps you to manage memory allocated on heap(```new``` and ```delete```). Smart pointer frees you from ```delete``` memory manually.
 
 There are three kinds of smart pointer in C++ which are ```unique_ptr```, ```shared_ptr```, ```weak_ptr```. Let's see how to use them and what's the difference among these three.
 
@@ -859,7 +859,7 @@ int main()
 }
 ```
 
-```unique_ptr``` can't not be assigned or assign to other ```unique_ptr```, the name reveals that the memory it points to belongs to itself. And within the class, the copy constructor and assignment constructor are bot marked ```delete```.
+```unique_ptr``` can't not be assigned or assign to other ```unique_ptr```, the name reveals that the memory it points to belongs to itself. And within the class, the copy constructor and assignment constructor are both marked ```delete```.
 
 However, ```shared_ptr``` can do the assignment things. It uses reference counting to decide when to delete the memory(delete when conting down to 0).
 
@@ -1271,7 +1271,7 @@ If you want to access entites outside the body of the lambda expression, add the
 
 	// auto printSignature = [value](const std::string& signature){ std::cout << signature << value << std::endl; value = 7 }; // error can not change by passing value
 
-	uto printSignature = [value](const std::string& signature) mutable { std::cout << signature << value << std::endl; value = 7 }; // no errors
+	auto printSignature = [value](const std::string& signature) mutable { std::cout << signature << value << std::endl; value = 7 }; // no errors
 
 	// Access by reference. Can change inside the body.
 	auto printSignature = [&value](const std::string& signature){ std::cout << signature << value << std::endl; value = 17; };
