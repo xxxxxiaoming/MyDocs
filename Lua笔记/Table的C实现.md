@@ -7,7 +7,7 @@
    或者更大一统的说法，lua中变量不需要写明类型，也是靠这个实现的（我猜的）
 */
 typedef union Value {
-  GCObject *gc;    /* collectable objects */
+  GCObject *gc;    /* collectable objects 这个指针可以用来指向Lua种的GCObject，比如Table/TString等 */
   void *p;         /* light userdata */
   int b;           /* booleans */
   lua_CFunction f; /* light C functions */
@@ -148,6 +148,52 @@ const TValue *luaH_getint (Table *t, lua_Integer key) {
       }
     }
     return luaO_nilobject;
+  }
+}
+```
+
+对于短字符串，有一个专用的函数
+
+```C
+/*
+** search function for short strings
+*/
+const TValue *luaH_getshortstr (Table *t, TString *key) {
+  Node *n = hashstr(t, key);
+  lua_assert(key->tt == LUA_TSHRSTR);
+  for (;;) {  /* check whether 'key' is somewhere in the chain */
+    const TValue *k = gkey(n);
+    if (ttisshrstring(k) && eqshrstr(tsvalue(k), key))
+      return gval(n);  /* that's it */
+    else {
+      int nx = gnext(n);
+      if (nx == 0)
+        return luaO_nilobject;  /* not found */
+      n += nx;
+    }
+  }
+}
+
+```
+
+此外，还有一个通用的函数，不管key是什么类型，都能够使用：
+
+```C
+/*
+** "Generic" get version. (Not that generic: not valid for integers,
+** which may be in array part, nor for floats with integral values.)
+*/
+static const TValue *getgeneric (Table *t, const TValue *key) {
+  Node *n = mainposition(t, key);
+  for (;;) {  /* check whether 'key' is somewhere in the chain */
+    if (luaV_rawequalobj(gkey(n), key))
+      return gval(n);  /* that's it */
+    else {
+      int nx = gnext(n);
+      if (nx == 0)
+        return luaO_nilobject;  /* not found */
+      n += nx;
+    }
   }
 }
 ```
