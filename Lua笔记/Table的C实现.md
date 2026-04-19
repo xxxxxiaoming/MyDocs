@@ -252,7 +252,7 @@ TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
     }
     lua_assert(!isdummy(t));/*扩容失败？*/
     
-    /*计算一下queen的main position是哪个节点，othern直线queen的main position节点*/
+    /*计算一下queen的main position是哪个节点，othern指向queen的main position节点*/
     othern = mainposition(t, gkey(mp));
 
     /*othern != mp，说明queen现在所在的节点并不是queen的main position节点*/
@@ -264,7 +264,7 @@ TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
       while (othern + gnext(othern) != mp)  /* find previous */
         othern += gnext(othern);
 
-      /*找到之后，讲这个节点连接到找到的空闲节点f，也就是queen的新家上*/
+      /*找到之后，将这个节点连接到找到的空闲节点f，也就是queen的新家上*/
       gnext(othern) = cast_int(f - othern);  /* rechain to point to 'f' */
       
       /*将queen搬动到新的空闲节点f上*/
@@ -303,7 +303,7 @@ TValue *luaH_newkey (lua_State *L, Table *t, const TValue *key) {
 
 - 找到新key的main position
 - 如果main position被占用，看占用这个main postion的节点的main position是不是也是同一个节点
-  - 如果是，那只能给新的节点找一个空闲的节点放置（没用空闲节点就需要rehash扩容）
+  - 如果是，那只能给新的节点找一个空闲的节点放置（没有空闲节点就需要rehash扩容）
   - 如果不是，那就把占用这个main position的节点移动到一个空闲节点上
   
 对，就这样，函数里比较难懂的部分我觉得就是修改连接关系。
@@ -374,7 +374,7 @@ static unsigned int computesizes (unsigned int nums[], unsigned int *pna) {
 }
 ```
 
-上面这段代码，举得例子你会问，拿这个key为17的值怎么办，没办法放到新的array part里面了，是的，继续看这个函数，就能知道这个key为17的值会变到哪里去
+上面这段代码，举的例子你会问，拿这个key为17的值怎么办，没办法放到新的array part里面了，是的，继续看这个函数，就能知道这个key为17的值会变到哪里去
 
 ```C
 void luaH_resize (lua_State *L, Table *t, unsigned int nasize,
